@@ -1,0 +1,13 @@
+# dependancy directories
+
+node_modules/
+
+
+# environment variables 
+
+.env
+.env.test
+.env.production
+
+# lock file
+package-lock.json
