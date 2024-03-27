@@ -4,6 +4,8 @@ const asyncHandler = (requestHandler) => {
   };
 };
 
+export default asyncHandler;
+
 // async version both of them work
 // export const asyncHandler = (fn) => async (req, res, next) => {
 //   try {

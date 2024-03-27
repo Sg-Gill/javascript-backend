@@ -14,4 +14,12 @@ app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(cookieParser());
 
+//routes import
+
+import userRouter from "./routes/user.routes.js";
+
+//routes declartions
+// the route in app.js is the prefix for your route like https://localhost:3000/api/v1/users/register
+app.use("/api/v1/users", userRouter);
+
 export default app;
