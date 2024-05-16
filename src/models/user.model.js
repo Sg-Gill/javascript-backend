@@ -56,6 +56,7 @@ userSchema.pre("save", async function (next) {
 });
 
 userSchema.methods.isPasswordCorrect = async function (password) {
+  console.log(bcrypt.compare(password, this.password));
   return await bcrypt.compare(password, this.password);
 };
 
@@ -79,7 +80,7 @@ userSchema.methods.generateRefreshToken = function () {
     {
       _id: this.id,
     },
-    process.env.ACCESS_TOKEN_SECRET,
+    process.env.REFRESH_TOKEN_SECRET,
     {
       expiresIn: process.env.ACCESS_TOKEN_EXIRY,
     }
