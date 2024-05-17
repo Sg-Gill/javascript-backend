@@ -251,4 +251,125 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+const changePassword = asyncHandler(async (req, res) => {
+  const { newPassword, oldPassword } = req.body;
+
+  const user = await User.findById(req.user?._id);
+
+  if (!user) {
+    throw new ApiError(400, "Invalid Password");
+  }
+
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Invalid Password");
+  }
+
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully!"));
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res
+    .send(200)
+    .json(new ApiResponse(200, req.user, "User fetched Successfully!"));
+});
+
+const updateUser = asyncHandler(async (req, res) => {
+  const { fullName, email } = req.body;
+
+  if (!fullName || !email) {
+    throw new ApiError(400, "All fields are required");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req?.user?._id,
+    {
+      // there are multiple operators like this to work on the db through queries
+      $set: {
+        fullName,
+        email,
+      },
+    },
+    {
+      // this returns to me the new data after update
+      //  otherwise i would have to make another query to the db
+      new: true,
+    }
+  ).select("-password");
+
+  return res
+    .send(200)
+    .json(new ApiResponse(200, user, "Account details updated"));
+});
+
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  const avatarLocalPath = req.file?.path;
+
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "Invalid uploaded Image");
+  }
+
+  const avatar = await uploadFileOnCloudinary(avatarLocalPath);
+
+  if (!avatar?.url) {
+    throw new ApiError(400, "Error while uploading file");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req?.user?._id,
+    {
+      $set: { avatar: avatar.url },
+      // we are doing avatar.url because the avatar object of cloudinary has a lot more data
+    },
+    { new: true }
+  ).select("-password");
+
+  return res
+    .send(200)
+    .json(new ApiResponse(200, user, "Avatar uploaded successfully!"));
+});
+
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+  const coverImageLocalPath = req.file?.path;
+
+  if (!coverImageLocalPath) {
+    throw new ApiError(400, "Invalid uploaded Image");
+  }
+
+  const coverImage = await uploadFileOnCloudinary(coverImageLocalPath);
+
+  if (!coverImage?.url) {
+    throw new ApiError(400, "Error while uploading file");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req?.user?._id,
+    {
+      $set: { coverImage: coverImage.url },
+      // we are doing avatar.url because the avatar object of cloudinary has a lot more data
+    },
+    { new: true }
+  ).select("-password");
+
+  return res
+    .send(200)
+    .json(new ApiResponse(200, user, "Cover image uploaded successfully!"));
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+  changePassword,
+  getCurrentUser,
+  updateUser,
+  updateUserAvatar,
+  updateUserCoverImage,
+};
