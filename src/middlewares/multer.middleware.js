@@ -1,14 +1,18 @@
 import multer from "multer";
+import * as path from 'path';
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "./public/temp");
   },
   filename: function (req, file, cb) {
-    // creating unique suffix like id.png etc
+    // creating unique suffix like id.png etc it is important when two images of the same name are uploaded by the user
+    const ext = path.extname(file.originalname); // Get file extension
+    const baseName = path.basename(file.originalname, ext); // Get base file name
+    const uniqueName = `${baseName}-${Date.now()}${ext}`; // Add timestamp to filename
     // const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     // cb(null, file.fieldname + "-" + uniqueSuffix);
-    cb(null, file.originalname);
+    cb(null, uniqueName);
   },
 });
 

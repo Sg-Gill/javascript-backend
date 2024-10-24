@@ -276,7 +276,7 @@ const changePassword = asyncHandler(async (req, res) => {
 
 const getCurrentUser = asyncHandler(async (req, res) => {
   return res
-    .send(200)
+    .status(200)
     .json(new ApiResponse(200, req.user, "User fetched Successfully!"));
 });
 
@@ -304,7 +304,7 @@ const updateUser = asyncHandler(async (req, res) => {
   ).select("-password");
 
   return res
-    .send(200)
+    .status(200)
     .json(new ApiResponse(200, user, "Account details updated"));
 });
 
@@ -331,7 +331,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   ).select("-password");
 
   return res
-    .send(200)
+    .status(200)
     .json(new ApiResponse(200, user, "Avatar uploaded successfully!"));
 });
 
@@ -358,8 +358,32 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
   ).select("-password");
 
   return res
-    .send(200)
+    .status(200)
     .json(new ApiResponse(200, user, "Cover image uploaded successfully!"));
+});
+
+const updateAccountDetail = asyncHandler(async (req,res) =>{
+
+  const {fullName, email} = req?.body;
+
+  if(!fullName || !email) {
+    throw new ApiError(400,"All fields are required!")
+  }
+
+  const user = await User.findByIdAndUpdate(req.user?._id,
+    {
+      $set:{
+        // can be written both ways either by itself that is fullName or email:email 
+        fullName,
+        email: email
+      }
+    },
+    {new:true}
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200,user,"Account details updated successfully!"));
 });
 
 export {
@@ -372,4 +396,5 @@ export {
   updateUser,
   updateUserAvatar,
   updateUserCoverImage,
+  updateAccountDetail,
 };

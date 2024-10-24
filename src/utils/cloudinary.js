@@ -15,10 +15,11 @@ const uploadFileOnCloudinary = async (uploadedFilePath) => {
       resource_type: "auto",
     });
     // file uploaded
-    fs.unlinkSync(uploadedFilePath);
+    if(uploadedFilePath) fs.unlinkSync(uploadedFilePath)
     return response;
   } catch (error) {
-    fs.unlinkSync(uploadedFilePath);
+    console.log(error);
+    // if(uploadedFilePath) fs.unlinkSync(uploadedFilePath)
     // remove the uploaded file if the upload failed
     return null;
   }
