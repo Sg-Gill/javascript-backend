@@ -315,6 +315,8 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid uploaded Image");
   }
 
+  // Need to add a delete image utility function
+
   const avatar = await uploadFileOnCloudinary(avatarLocalPath);
 
   if (!avatar?.url) {
@@ -385,6 +387,73 @@ const updateAccountDetail = asyncHandler(async (req,res) =>{
     .status(200)
     .json(new ApiResponse(200,user,"Account details updated successfully!"));
 });
+
+const getChannelProfile = asyncHandler(async (req,res) =>{
+  const {userName} = req.params;
+
+  if(!userName?.trim()){
+    throw new ApiError(400,"Username is missing!")
+  }
+
+  const channel = await User.aggregate([
+    {
+      $match:{
+        username: userName?.toLowerCase()
+      }
+    },
+    {
+      $lookup:{
+        from:"subscriptions",
+        localField:"_id",
+        foreignField:"channel",
+        as:"subscribers"
+      }
+    },
+    {
+      $lookup:{
+        from:"subscriptions",
+        localField:"_id",
+        foreignField:"subscriber",
+        as:"subscribedTo"
+    }
+  },
+  {
+    $addFields:{
+      subscriberCount:{
+        $size:"$subscribers"
+      },
+      subscribedToCount:{
+        $size:"subscribedTo"
+      },
+      isSubscribed: {
+        $cond:{
+          if: {$in: [req.user?._id, "$subcribers.subscriber"]},
+          then:true,
+          else:false
+        }
+      }
+    }
+  },
+  {
+    $project:{
+      fullName:1,
+      userName:1,
+      subscriberCount:1,
+      subscribedToCount:1,
+      isSubscribed:1,
+      avatar:1,
+      coverImage:1,
+      email:1,
+    }
+  }
+  ])
+
+  if(!channel?.length){
+    throw new ApiError(404,"Channel does not exist!")
+  }
+
+  return res.status(200).json(new ApiResponse(200,channel[0],"Channel returned succesfully!"))
+})
 
 export {
   registerUser,
